@@ -12,7 +12,7 @@ import Faq from "../homes/Faq";
 export default function Home() {
   return (
     <div className="bg-gradient-to-br from-pink-400/80 via-yellow-400/60 to-orange-400/80 text-white">
-      {/* <Loading> */}
+      <Loading>
           <Navbar />
           <Hero />
           <Feature />
@@ -21,7 +21,7 @@ export default function Home() {
           <Faq />
           <CtaFooter />
           <Footer />
-      {/* </Loading> */}
+      </Loading>
     </div>
   );
 }
