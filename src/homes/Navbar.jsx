@@ -67,7 +67,7 @@ export default function GlassNavbar() {
 
     <Box>
       <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mb: 2 }} />
-      <Link href="/login" passHref>
+      <Link href="/sign-in" passHref>
         <Button
           variant="outlined"
           fullWidth
@@ -180,7 +180,7 @@ export default function GlassNavbar() {
           </Box>
 
           {/* Buttons - Desktop */}
-          <Link href="/login" passHref>
+          <Link href="/sign-in" passHref>
             <Button variant="outlined" color="inherit">
               Sign In
             </Button>

@@ -11,7 +11,7 @@ import Faq from "../homes/Faq";
 
 export default function Home() {
   return (
-    <div className="bg-gradient-to-br from-pink-600/80 via-yellow-600/60 to-orange-600/80 text-white">
+    <div className="bg-gradient-to-br from-pink-800/80 via-yellow-800/60 to-orange-800/80 text-white">
       <Loading>
         <Navbar />
         <Hero />
