@@ -11,16 +11,16 @@ import Faq from "../homes/Faq";
 
 export default function Home() {
   return (
-    <div className="bg-gradient-to-br from-pink-400/80 via-yellow-400/60 to-orange-400/80 text-white">
+    <div className="bg-gradient-to-br from-pink-600/80 via-yellow-600/60 to-orange-600/80 text-white">
       <Loading>
-          <Navbar />
-          <Hero />
-          <Feature />
-          <GeneratedPrompts />
-          <Reviews />
-          <Faq />
-          <CtaFooter />
-          <Footer />
+        <Navbar />
+        <Hero />
+        <Feature />
+        <GeneratedPrompts />
+        <Reviews />
+        <Faq />
+        <CtaFooter />
+        <Footer />
       </Loading>
     </div>
   );

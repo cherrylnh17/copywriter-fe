@@ -2,14 +2,23 @@
 import { useState, useEffect } from "react";
 import { Atom } from 'react-loading-indicators';
 
-
 export default function Loading({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // cek udah pernah di load belum
+    const hasLoaded = localStorage.getItem("hasLoaded");
+
+    if (hasLoaded) {
+      setLoading(false);
+      return;
+    }
+
+    // kalau udah pernah gausah di load
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000); 
+      localStorage.setItem("hasLoaded", "true"); 
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -17,9 +26,7 @@ export default function Loading({ children }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white transition-opacity duration-500">
-        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-            <Atom color="#a2ff00" size="large" speedPlus="-2" text="Loading..." textColor="" />
-        </div>
+        <Atom color="#a2ff00" size="large" speedPlus="-2" text="Loading..." />
       </div>
     );
   }
