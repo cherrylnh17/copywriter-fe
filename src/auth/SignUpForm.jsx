@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import Swal from 'sweetalert2';
 import {
   Box, Typography, TextField, Button, Link, Checkbox,
   FormControlLabel, Divider, Stack
@@ -53,7 +54,7 @@ export default function SignUpForm() {
 
     if (isValid) {
       try {
-        const res = await fetch("http://localhost:3000/api/register", {
+        const res = await fetch("https://malasnulis-api-production-016f.up.railway.app/api/users", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -75,10 +76,25 @@ export default function SignUpForm() {
 
         console.log("Respon dari server", data);
 
-        window.location.href = `/verify-account?email=${encodeURIComponent(email)}`;
+         Swal.fire({
+          title: 'Pendaftaran Berhasil!',
+          text: 'Silakan verifikasi email Anda.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+        }).then(() => {
+          window.location.href = `/sign-in`;
+        });
+
         
       } catch (err) {
         console.error("Terjadi kesalahan: ", err.message);
+
+        Swal.fire({
+          title: 'Pendaftaran Gagal',
+          text: err.message || 'Terjadi kesalahan saat mendaftar.',
+          icon: 'error',
+          confirmButtonText: 'Coba Lagi',
+        });
       }
     }
   };
