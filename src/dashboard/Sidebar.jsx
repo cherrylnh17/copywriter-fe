@@ -10,9 +10,9 @@ const menus = [
 ];
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-
   return (
     <>
       <div
