@@ -175,7 +175,7 @@ export default function ResetPasswordForm() {
                 ? "Mengirim..."
                 : timer > 0
                 ? `Kirim ulang dalam ${timer}s`
-                : "Kirim Link Reset"}
+                : "Reset Password"}
             </Button>
       </Box>
 
