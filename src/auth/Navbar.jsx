@@ -49,7 +49,9 @@ export default function GlassNavbar() {
       <Typography
         variant="h5"
         fontWeight="bold"
-        sx={{ userSelect: 'none' }}
+        sx={{ 
+          userSelect: 'none',
+         }}
       >
         Malas Nulis
       </Typography>
@@ -149,23 +151,6 @@ export default function GlassNavbar() {
             </Drawer>
           </Box>
 
-          {/* Logo - Mobile */}
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="#home"
-            sx={{
-              flexGrow: 1,
-              fontWeight: 700,
-              color: 'inherit',
-              textDecoration: 'none',
-              display: { xs: 'flex', md: 'none' },
-              justifyContent: 'center',
-            }}
-          >
-            Malas Nulis
-          </Typography>
 
           {/* Nav Links - Desktop */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 2 }}>

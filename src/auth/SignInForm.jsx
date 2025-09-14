@@ -69,7 +69,9 @@ export default function SignInForm() {
         if (!res.ok) throw new Error(data.message || "Login Gagal");
 
         console.log("Respon dari server", data);
-        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+
 
         Swal.fire({
           title: 'Login Berhasil!',
@@ -81,15 +83,30 @@ export default function SignInForm() {
 
         
       } catch (err) {
-        console.error("Terjadi kesalahan: ", err.message);
+          console.error("Terjadi kesalahan: ", err.message);
 
-        Swal.fire({
-          title: 'Login Gagal',
-          text: err.message || 'Terjadi kesalahan saat login.',
-          icon: 'error',
-          confirmButtonText: 'Coba Lagi',
-        });
-      }
+          // error belum verif akun
+          if (err.message === "akun anda belum diverifikasi") {
+            Swal.fire({
+              title: 'Akun Belum Diverifikasi',
+              text: 'Silakan verifikasi akun kamu sebelum login.',
+              icon: 'warning',
+              confirmButtonText: 'Verifikasi Sekarang',
+            }).then(() => {
+              window.location.href = `/verify-account?email=${encodeURIComponent(email)}`;
+            });
+            return;
+          }
+
+          // default error
+          Swal.fire({
+            title: 'Login Gagal',
+            text: err.message || 'Terjadi kesalahan saat login.',
+            icon: 'error',
+            confirmButtonText: 'Coba Lagi',
+          });
+        }
+
     }
   };
 
@@ -176,7 +193,7 @@ export default function SignInForm() {
             control={<Checkbox name="remember" color="white" sx={{ color: 'white' }} />}
             label={<Typography sx={{ color: 'white' }}>Remember me</Typography>}
           />
-          <Link href="#" underline="hover" variant="body2" sx={{ color: 'white' }}>
+          <Link href="/reset-password" underline="hover" variant="body2" sx={{ color: 'white' }}>
             Forgot password?
           </Link>
         </Box>

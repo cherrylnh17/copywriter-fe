@@ -85,7 +85,7 @@ export default function SignUpForm() {
 
          Swal.fire({
           title: 'Pendaftaran Berhasil!',
-          text: 'Silakan melakukan login ke akun anda.',
+          text: 'Silakan melakukan verifikasi akun anda.',
           icon: 'success',
           confirmButtonText: 'OK',
         }).then(() => {

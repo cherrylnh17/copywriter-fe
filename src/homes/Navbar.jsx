@@ -105,22 +105,7 @@ export default function GlassNavbar() {
     >
       <Container maxWidth="lg">
         <Toolbar disableGutters>
-          {/* Logo - Desktop */}
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="#home"
-            sx={{
-              mr: 4,
-              fontWeight: 700,
-              color: 'inherit',
-              textDecoration: 'none',
-              display: { xs: 'none', md: 'flex' },
-            }}
-          >
-            Malas Nulis
-          </Typography>
+          
 
           {/* Mobile Menu Button */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' }, justifyContent: 'flex-start' }}>
