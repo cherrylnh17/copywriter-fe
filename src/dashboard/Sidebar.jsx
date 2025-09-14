@@ -10,9 +10,9 @@ const menus = [
 ];
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
   return (
     <>
       <div
@@ -45,7 +45,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
           className="fixed inset-0 bg-black opacity-50 z-10 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
-        ></div>
+        />
       )}
     </>
   );
