@@ -61,10 +61,10 @@ export default function SignInForm() {
         if (!res.ok) throw new Error(data.message || "Login Gagal");
 
         console.log("Respon dari server", data);
+        localStorage.setItem('accessToken', data.accessToken);
 
-          Swal.fire({
+        Swal.fire({
           title: 'Login Berhasil!',
-          text: 'Anda akan memasuki dashboard.',
           icon: 'success',
           confirmButtonText: 'OK',
         }).then(() => {

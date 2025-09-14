@@ -67,10 +67,17 @@ export default function SignUpForm() {
       
         let data;
         try {
-          data = await res.json();
-        } catch {
-          throw new Error('Server error: response bukan JSON');
+          const text = await res.text();
+          try {
+            data = JSON.parse(text); 
+          } catch {
+            console.error("Respon bukan JSON:\n", text);
+            throw new Error("Server error: response bukan JSON");
+          }
+        } catch (e) {
+          throw new Error("Gagal membaca respon dari server");
         }
+
 
         if (!res.ok) throw new Error(data.message || "Pendaftaran Gagal");
 
@@ -78,7 +85,7 @@ export default function SignUpForm() {
 
          Swal.fire({
           title: 'Pendaftaran Berhasil!',
-          text: 'Silakan verifikasi email Anda.',
+          text: 'Silakan melakukan login ke akun anda.',
           icon: 'success',
           confirmButtonText: 'OK',
         }).then(() => {
