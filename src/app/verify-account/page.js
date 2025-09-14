@@ -1,4 +1,3 @@
-"use client";
 import OtpWrapper from "@/auth/OtpWrapper";
 import Navbar from "@/auth/Navbar";
 import { Suspense } from 'react';

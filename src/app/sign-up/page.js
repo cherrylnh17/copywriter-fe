@@ -1,4 +1,3 @@
-"use client";
 import SignUp from "../../auth/SignUp";
 import Navbar from "../../auth/Navbar";
 
