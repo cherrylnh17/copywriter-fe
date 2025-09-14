@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import Swal from 'sweetalert2';
 import {
   Box, Typography, TextField, Button, Link, Checkbox,
   FormControlLabel, Divider,
@@ -53,10 +54,17 @@ export default function SignInForm() {
       
         let data;
         try {
-          data = await res.json();
-        } catch {
-          throw new Error('Server error: response bukan JSON');
+          const text = await res.text();
+          try {
+            data = JSON.parse(text);
+          } catch {
+            console.error("Respon bukan JSON:\n", text);
+            throw new Error("Server error: response bukan JSON");
+          }
+        } catch (e) {
+          throw new Error("Gagal membaca respon dari server");
         }
+
 
         if (!res.ok) throw new Error(data.message || "Login Gagal");
 
