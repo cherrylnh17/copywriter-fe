@@ -55,7 +55,7 @@ export default function Otp() {
               <SitemarkContent />
             </Box>
             <Box sx={{ flex: { xs: "none", md: 1 } }}>
-              {/* <OtpForm /> */}
+              <OtpForm />
             </Box>
           </Box>
         </GlassPaper>

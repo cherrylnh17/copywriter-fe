@@ -89,7 +89,7 @@ export default function SignUpForm() {
           icon: 'success',
           confirmButtonText: 'OK',
         }).then(() => {
-          window.location.href = `/sign-in`;
+          window.location.href = `/verify-account?email=${encodeURIComponent(email)}`;
         });
 
         
