@@ -81,7 +81,7 @@ export default function SignUpForm() {
 
         if (!res.ok) throw new Error(data.message || "Pendaftaran Gagal");
 
-        console.log("Respon dari server", data);
+        // console.log("Respon dari server", data);
 
          Swal.fire({
           title: 'Pendaftaran Berhasil!',

@@ -6,10 +6,13 @@ import { List } from "lucide-react";
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
   const [token, setToken] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
+    const profileString = localStorage.getItem("userProfile");
 
     if (!accessToken) {
       router.push("/sign-in");
@@ -18,27 +21,19 @@ export default function Header({ onToggleSidebar }) {
 
     setToken(accessToken);
 
-    fetch("https://malasnulis-api-production-016f.up.railway.app/api/users/profile/me", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Unauthorized");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setUserProfile(data);
-      })
-      .catch((err) => {
-        console.error(err.message);
-        localStorage.removeItem("accessToken"); 
-        router.push("/sign-in");
-      });
+    if (profileString) {
+      try {
+        const profile = JSON.parse(profileString);
+        const email = profile?.data?.user?.email;
+        setEmail(email);
+      } catch (error) {
+        console.error("Gagal parse profile:", error);
+      }
+    } else {
+      console.log("Data userProfile tidak ditemukan di localStorage");
+    }
+
+    setIsLoading(false);
   }, [router]);
 
   const handleLogout = async () => {
@@ -46,6 +41,8 @@ export default function Header({ onToggleSidebar }) {
 
     if (!refreshToken) {
       // fallback kalau gak ada refreshToken, langsung logout
+      localStorage.removeItem("user");
+      localStorage.removeItem("userProfile");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       router.push("/sign-in");
@@ -96,7 +93,7 @@ export default function Header({ onToggleSidebar }) {
 
       <div className="flex items-center space-x-4">
         <span className="text-gray-600">
-          {userProfile ? userProfile.data.user.email || "User" : "Loading..."}
+          {isLoading ? "Loading..." : email || "Users"}
         </span>
         <button
           onClick={handleLogout}

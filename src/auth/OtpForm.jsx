@@ -16,7 +16,7 @@ export default function OtpForm() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(60); //timer kirim ulang OTP
+  const [resendCooldown, setResendCooldown] = useState(0); //timer kirim ulang OTP
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
 
@@ -78,8 +78,8 @@ export default function OtpForm() {
       await Swal.fire({
         icon: 'success',
         title: 'Verifikasi Berhasil!',
-        text: 'Anda akan diarahkan ke Dashboard.',
-        confirmButtonText: 'Lanjut',
+        text: 'Silahkan Login Menggunakan Akun Anda.',
+        confirmButtonText: 'Login',
       });
       window.location.href = '/sign-in';
     } catch (error) {

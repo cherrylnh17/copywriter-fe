@@ -1,11 +1,13 @@
 "use client";
 import * as React from "react";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import {
   Box, Typography, TextField, Button, Link, Checkbox,
   FormControlLabel, Divider,
 } from "@mui/material";
 import { Eye, EyeOff } from "lucide-react";
+
+import { loginUser, getUserProfile } from "@/lib/api";
 
 export default function SignInForm() {
   const [emailError, setEmailError] = React.useState(false);
@@ -13,12 +15,14 @@ export default function SignInForm() {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const validateInputs = async (event) => {
     event.preventDefault();
-    const email = event.target.email.value;
-    const password = event.target.password.value;
+    setIsLoading(true);
 
+    const email = event.target.email.value.trim();
+    const password = event.target.password.value.trim();
     let isValid = true;
 
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
@@ -32,83 +36,55 @@ export default function SignInForm() {
 
     if (!password || password.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      setPasswordErrorMessage("Password must be at least 6 characters.");
       isValid = false;
     } else {
       setPasswordError(false);
       setPasswordErrorMessage("");
     }
 
-    if (isValid) {
-      try {
-        const res = await fetch("https://malasnulis-api-production-016f.up.railway.app/api/authentications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-        });
-      
-        let data;
-        try {
-          const text = await res.text();
-          try {
-            data = JSON.parse(text);
-          } catch {
-            console.error("Respon bukan JSON:\n", text);
-            throw new Error("Server error: response bukan JSON");
-          }
-        } catch (e) {
-          throw new Error("Gagal membaca respon dari server");
-        }
+    if (!isValid) {
+      setIsLoading(false);
+      return;
+    }
 
+    try {
+      const { tokens, profile } = await loginUser({ email, password });
 
-        if (!res.ok) throw new Error(data.message || "Login Gagal");
+      localStorage.setItem("user", JSON.stringify(profile));
 
-        console.log("Respon dari server", data);
-        localStorage.setItem('accessToken', data.data.accessToken);
-        localStorage.setItem('refreshToken', data.data.refreshToken);
+      Swal.fire({
+        title: "Login Berhasil!",
+        icon: "success",
+        confirmButtonText: "OK",
+      }).then(() => {
+        window.location.href = "/studio/home";
+      });
+    } catch (err) {
+      console.error("Login error:", err.message);
 
-
+      if (err.message === "akun anda belum diverifikasi") {
         Swal.fire({
-          title: 'Login Berhasil!',
-          icon: 'success',
-          confirmButtonText: 'OK',
+          title: "Akun Belum Diverifikasi",
+          text: "Silakan verifikasi akun kamu sebelum login.",
+          icon: "warning",
+          confirmButtonText: "Verifikasi Sekarang",
         }).then(() => {
-          window.location.href = `/studio/home`;
+          window.location.href = `/verify-account?email=${encodeURIComponent(email)}`;
         });
-
-        
-      } catch (err) {
-          console.error("Terjadi kesalahan: ", err.message);
-
-          // error belum verif akun
-          if (err.message === "akun anda belum diverifikasi") {
-            Swal.fire({
-              title: 'Akun Belum Diverifikasi',
-              text: 'Silakan verifikasi akun kamu sebelum login.',
-              icon: 'warning',
-              confirmButtonText: 'Verifikasi Sekarang',
-            }).then(() => {
-              window.location.href = `/verify-account?email=${encodeURIComponent(email)}`;
-            });
-            return;
-          }
-
-          // default error
-          Swal.fire({
-            title: 'Login Gagal',
-            text: err.message || 'Terjadi kesalahan saat login.',
-            icon: 'error',
-            confirmButtonText: 'Coba Lagi',
-          });
-        }
-
+      } else {
+        Swal.fire({
+          title: "Login Gagal",
+          text: err.message || "Terjadi kesalahan saat login.",
+          icon: "error",
+          confirmButtonText: "Coba Lagi",
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
+
 
   return (
     <Box
@@ -203,6 +179,7 @@ export default function SignInForm() {
           variant="contained"
           type="submit"
           fullWidth
+          disabled={isLoading}
           sx={{
             background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
             boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
@@ -213,15 +190,13 @@ export default function SignInForm() {
             }
           }}
         >
-          Sign in
+          {isLoading ? "Signing in..." : "Sign in"}
         </Button>
       </Box>
 
       <Divider sx={{ my: 2, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
         <Typography sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>or</Typography>
       </Divider>
-
-      
 
       <Typography
         variant="body2"

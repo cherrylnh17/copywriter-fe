@@ -1,7 +1,9 @@
+import TokenLogin from "@/components/TokenLogin";
+
 export default function StudioLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {children}
+      <TokenLogin>{children}</TokenLogin>
     </div>
   );
 }
