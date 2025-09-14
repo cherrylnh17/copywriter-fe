@@ -13,7 +13,7 @@ export default function SignInForm() {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const validateInputs = (event) => {
+  const validateInputs = async (event) => {
     event.preventDefault();
     const email = event.target.email.value;
     const password = event.target.password.value;
@@ -39,7 +39,49 @@ export default function SignInForm() {
     }
 
     if (isValid) {
-      console.log(`Email: ${email}\nPassword: ${password}`);
+      try {
+        const res = await fetch("https://malasnulis-api-production-016f.up.railway.app/api/authentications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        });
+      
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error('Server error: response bukan JSON');
+        }
+
+        if (!res.ok) throw new Error(data.message || "Login Gagal");
+
+        console.log("Respon dari server", data);
+
+          Swal.fire({
+          title: 'Login Berhasil!',
+          text: 'Anda akan memasuki dashboard.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+        }).then(() => {
+          window.location.href = `/studio/home`;
+        });
+
+        
+      } catch (err) {
+        console.error("Terjadi kesalahan: ", err.message);
+
+        Swal.fire({
+          title: 'Login Gagal',
+          text: err.message || 'Terjadi kesalahan saat login.',
+          icon: 'error',
+          confirmButtonText: 'Coba Lagi',
+        });
+      }
     }
   };
 
@@ -132,6 +174,7 @@ export default function SignInForm() {
         </Box>
 
         <Button
+          aria-label="login"
           variant="contained"
           type="submit"
           fullWidth
