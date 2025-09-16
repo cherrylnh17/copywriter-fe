@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Navbar from "@/auth/Navbar";
-import ValidatePassword from "./ValidatePassword"; 
+import ValidatePassword from "@/auth/ValidatePassword";
 
 export default function Home() {
   return (
