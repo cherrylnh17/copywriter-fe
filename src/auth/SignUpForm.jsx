@@ -54,7 +54,7 @@ export default function SignUpForm() {
 
     if (isValid) {
       try {
-        const res = await fetch("https://malasnulis-api-production-016f.up.railway.app/api/users", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

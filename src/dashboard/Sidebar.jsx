@@ -1,17 +1,66 @@
 'use client';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { Divider } from '@mui/material';
+
+<Divider />
+
 
 const menus = [
   { name: 'Dashboard', path: '/studio/home', icon: '🏠' },
   { name: 'History', path: '/studio/history', icon: '📜' },
   { name: 'Prompt', path: '/studio/prompt', icon: '💡' },
-  { name: 'Profil', path: '/studio/profil', icon: '👤' },
 ];
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const handleLogout = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (!refreshToken) {
+      // fallback kalau gak ada refreshToken, langsung logout
+      localStorage.removeItem("user");
+      localStorage.removeItem("userProfile");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      router.push("/sign-in");
+      return;
+    }
+
+    try {
+      const response = await fetch("https://malasnulis-api-production-016f.up.railway.app/api/authentications", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const data = await response.json();
+
+      console.log("Logout response:", data);
+
+      // hapus token di localStorage
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("userProfile");
+
+      // Redirect
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Logout error:", error);
+
+      // tetep apus walaupun error
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("userProfile");
+      router.push("/sign-in");
+    }
+  };
 
   return (
     <>
@@ -29,7 +78,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
                 router.push(path);
                 setIsSidebarOpen(false);
               }}
-              className={`flex items-center space-x-3 p-3 rounded-lg transition duration-200 w-full text-left ${
+              className={`flex items-center space-x-3 p-2 rounded-lg transition duration-200 w-full text-left ${
                 pathname === path
                   ? 'bg-indigo-600 text-white shadow-lg'
                   : 'hover:bg-gray-700 hover:text-indigo-400'
@@ -40,10 +89,18 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
             </button>
           ))}
         </nav>
+        <Divider sx={{ my: 2, borderColor: 'grey.400' }} />
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-3 p-2 rounded-lg transition duration-200 w-full text-left hover:bg-red-700 hover:text-white bg-red-600/60"
+        >
+          <span className="text-lg">🚪</span>
+          <span className="font-medium">Keluar</span>
+        </button>
       </div>
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black opacity-50 z-10 md:hidden"
+          className="fixed inset-0 bg-black opacity-50 z-10 md:hidden flex items-center space-x-3 p-3 rounded-lg transition duration-200 w-full text-left"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
         />

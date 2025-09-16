@@ -20,17 +20,17 @@ export default function TokenLogin({ children }) {
 
       try {
         const decoded = jwtDecode(accessToken);
-        // console.log(decoded.exp);
+        console.log(decoded.exp);
         const now = Math.floor(Date.now() / 1000);
 
-        // console.log("Decoded token:", decoded);
-        // console.log("Now:", now, "Exp:", decoded.exp);
+        console.log("Decoded token:", decoded);
+        console.log("Now:", now, "Exp:", decoded.exp);
 
         if (!decoded.exp || decoded.exp < now) {
-          // console.log("Access token kadaluarsa, proses refres...");
+          console.log("Access token kadaluarsa, proses refres...");
           await refreshToken();
         } else {
-          // console.log("Access token valid.");
+          console.log("Access token valid.");
         }
       } catch (error) {
         console.error("Gagal decode token:", error);

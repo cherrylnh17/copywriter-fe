@@ -60,7 +60,7 @@ export default function OtpForm() {
     setLoading(true);
 
     try {
-      const res = await fetch('https://malasnulis-api-production-016f.up.railway.app/api/users/verify-otp', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ export default function OtpForm() {
     setMessage('');
 
     try {
-      const res = await fetch('https://malasnulis-api-production-016f.up.railway.app/api/users/resend-otp', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/resend-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

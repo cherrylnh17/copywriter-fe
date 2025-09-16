@@ -2,12 +2,23 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { List } from "lucide-react";
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
+import { deepOrange } from '@mui/material/colors';
 
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
   const [token, setToken] = useState(null);
   const [email, setEmail] = useState(null);
+  const [name, setName] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const getInitials = (fullName) => {
+    if (!fullName) return "ID";
+    const nameParts = fullName.trim().split(" ");
+    const initials = nameParts.slice(0, 2).map(n => n[0].toUpperCase()).join("");
+    return initials;
+  };
 
 
   useEffect(() => {
@@ -26,6 +37,8 @@ export default function Header({ onToggleSidebar }) {
         const profile = JSON.parse(profileString);
         const email = profile?.data?.user?.email;
         setEmail(email);
+        const fullName = profile?.data?.user?.name || "";
+        setName(getInitials(fullName));
       } catch (error) {
         console.error("Gagal parse profile:", error);
       }
@@ -36,47 +49,7 @@ export default function Header({ onToggleSidebar }) {
     setIsLoading(false);
   }, [router]);
 
-  const handleLogout = async () => {
-    const refreshToken = localStorage.getItem("refreshToken");
-
-    if (!refreshToken) {
-      // fallback kalau gak ada refreshToken, langsung logout
-      localStorage.removeItem("user");
-      localStorage.removeItem("userProfile");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      router.push("/sign-in");
-      return;
-    }
-
-    try {
-      const response = await fetch("https://malasnulis-api-production-016f.up.railway.app/api/authentications", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      const data = await response.json();
-
-      console.log("Logout response:", data);
-
-      // hapus token di localStorage
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-
-      // Redirect
-      router.push("/sign-in");
-    } catch (error) {
-      console.error("Logout error:", error);
-
-      // tetep apus walaupun error
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      router.push("/sign-in");
-    }
-  };
+  
 
 
   return (
@@ -95,12 +68,9 @@ export default function Header({ onToggleSidebar }) {
         <span className="text-gray-600">
           {isLoading ? "Loading..." : email || "Users"}
         </span>
-        <button
-          onClick={handleLogout}
-          className="cursor-pointer text-sm px-4 py-2 bg-gray-200 rounded-lg font-semibold hover:bg-gray-300 transition duration-300"
-        >
-          Keluar
-        </button>
+         <Stack direction="row" spacing={2}>
+          <Avatar sx={{ bgcolor: deepOrange[500] }}>{name || "ID"}</Avatar>
+        </Stack>
       </div>
     </header>
   );

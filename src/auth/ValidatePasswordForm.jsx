@@ -36,7 +36,7 @@ export default function ResetPasswordValidatePage() {
     const validateToken = async () => {
       try {
         const res = await fetch(
-          `https://malasnulis-api-production-016f.up.railway.app/api/reset-password/validate?token=${token}`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reset-password/validate?token=${token}`
         );
         const data = await res.json();
 
@@ -80,7 +80,7 @@ export default function ResetPasswordValidatePage() {
 
     try {
       const res = await fetch(
-        "https://malasnulis-api-production-016f.up.railway.app/api/reset-password/confirm",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reset-password/confirm`,
         {
           method: "POST",
           headers: {

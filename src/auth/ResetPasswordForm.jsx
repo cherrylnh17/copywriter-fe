@@ -51,7 +51,7 @@ export default function ResetPasswordForm() {
 
     try {
       const res = await fetch(
-        "https://malasnulis-api-production-016f.up.railway.app/api/reset-password/request",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reset-password/request`,
         {
           method: "POST",
           headers: {
