@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import Link from 'next/link';
 import AppBar from '@mui/material/AppBar';
@@ -19,76 +20,87 @@ const pages = ['Home', 'Fitur', 'Review', 'Faq'];
 
 export default function GlassNavbar() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [redirectUrl, setRedirectUrl] = React.useState("/sign-in");
+
+  React.useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (accessToken || refreshToken) {
+      setRedirectUrl("/studio/home");
+    } else {
+      setRedirectUrl("/sign-in");
+    }
+  }, []);
 
   const toggleDrawer = (open) => () => {
     setDrawerOpen(open);
   };
 
   const list = () => (
-  <Box
-    sx={{
-      width: 280,
-      height: '100vh',
-      bgcolor: 'rgba(255, 255, 255, 0.15)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      borderRadius: '0 10px 10px 0',
-      boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
-      border: '1px solid rgba(255, 255, 255, 0.18)',
-      color: 'white',
-      display: 'flex',
-      flexDirection: 'column',
-      p: 2,
-    }}
-    role="presentation"
-    onClick={toggleDrawer(false)}
-    onKeyDown={toggleDrawer(false)}
-  >
-    <Box mb={2} px={1}>
-      <Typography
-        variant="h5"
-        fontWeight="bold"
-        sx={{ userSelect: 'none' }}
-      >
-        Malas Nulis
-      </Typography>
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mt: 1 }} />
-    </Box>
-
-    <List>
-      {pages.map((page) => (
-        <ListItem key={page} disablePadding>
-          <ListItemButton component="a" href={`#${page.toLowerCase()}`}>
-            <ListItemText primary={page} />
-          </ListItemButton>
-        </ListItem>
-      ))}
-    </List>
-
-    <Box>
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mb: 2 }} />
-      <Link href="/sign-in" passHref>
-        <Button
-          variant="outlined"
-          fullWidth
-          sx={{
-            color: 'white',
-            borderColor: 'white',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderColor: 'white',
-            },
-            borderRadius: '12px',
-            fontWeight: 'bold',
-          }}
+    <Box
+      sx={{
+        width: 280,
+        height: '100vh',
+        bgcolor: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '0 10px 10px 0',
+        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
+        color: 'white',
+        display: 'flex',
+        flexDirection: 'column',
+        p: 2,
+      }}
+      role="presentation"
+      onClick={toggleDrawer(false)}
+      onKeyDown={toggleDrawer(false)}
+    >
+      <Box mb={2} px={1}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          sx={{ userSelect: 'none' }}
         >
-          Sign In
-        </Button>
-      </Link>
-    </Box>
-  </Box>
-);
+          Malas Nulis
+        </Typography>
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mt: 1 }} />
+      </Box>
 
+      <List>
+        {pages.map((page) => (
+          <ListItem key={page} disablePadding>
+            <ListItemButton component="a" href={`#${page.toLowerCase()}`}>
+              <ListItemText primary={page} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+
+      <Box>
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mb: 2 }} />
+        <Link href={redirectUrl} passHref>
+          <Button
+            variant="outlined"
+            fullWidth
+            sx={{
+              color: 'white',
+              borderColor: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                borderColor: 'white',
+              },
+              borderRadius: '12px',
+              fontWeight: 'bold',
+            }}
+          >
+            {redirectUrl === "/sign-in" ? "Sign In" : "Dashboard"}
+          </Button>
+        </Link>
+      </Box>
+    </Box>
+  );
 
   return (
     <AppBar
@@ -105,8 +117,6 @@ export default function GlassNavbar() {
     >
       <Container maxWidth="lg">
         <Toolbar disableGutters>
-          
-
           {/* Mobile Menu Button */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' }, justifyContent: 'flex-start' }}>
             <IconButton
@@ -151,7 +161,7 @@ export default function GlassNavbar() {
             Malas Nulis
           </Typography>
 
-          {/* Nav Links - Desktop */}
+          {/* Nav Link - Desktop */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 2 }}>
             {pages.map((page) => (
               <Button
@@ -164,10 +174,10 @@ export default function GlassNavbar() {
             ))}
           </Box>
 
-          {/* Buttons - Desktop */}
-          <Link href="/sign-in" passHref>
+          {/* Button - Desktop */}
+          <Link href={redirectUrl} passHref>
             <Button variant="outlined" color="inherit">
-              Sign In
+              {redirectUrl === "/sign-in" ? "Sign In" : "Dashboard"}
             </Button>
           </Link>
         </Toolbar>

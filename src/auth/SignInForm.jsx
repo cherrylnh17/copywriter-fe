@@ -75,7 +75,7 @@ export default function SignInForm() {
       } else {
         Swal.fire({
           title: "Login Gagal",
-          text: err.message || "Terjadi kesalahan saat login.",
+          text: "Terjadi kesalahan saat login.",
           icon: "error",
           confirmButtonText: "Coba Lagi",
         });

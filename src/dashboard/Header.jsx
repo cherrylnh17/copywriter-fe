@@ -2,13 +2,11 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { List } from "lucide-react";
-import Avatar from '@mui/material/Avatar';
-import Stack from '@mui/material/Stack';
-import { deepOrange } from '@mui/material/colors';
+import Avatar from "@mui/material/Avatar";
+import { deepPurple } from "@mui/material/colors";
 
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
-  const [token, setToken] = useState(null);
   const [email, setEmail] = useState(null);
   const [name, setName] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,10 +14,8 @@ export default function Header({ onToggleSidebar }) {
   const getInitials = (fullName) => {
     if (!fullName) return "ID";
     const nameParts = fullName.trim().split(" ");
-    const initials = nameParts.slice(0, 2).map(n => n[0].toUpperCase()).join("");
-    return initials;
+    return nameParts.slice(0, 2).map((n) => n[0].toUpperCase()).join("");
   };
-
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
@@ -30,47 +26,41 @@ export default function Header({ onToggleSidebar }) {
       return;
     }
 
-    setToken(accessToken);
-
     if (profileString) {
       try {
         const profile = JSON.parse(profileString);
-        const email = profile?.data?.user?.email;
-        setEmail(email);
+        setEmail(profile?.data?.user?.email);
         const fullName = profile?.data?.user?.name || "";
         setName(getInitials(fullName));
       } catch (error) {
         console.error("Gagal parse profile:", error);
       }
-    } else {
-      console.log("Data userProfile tidak ditemukan di localStorage");
     }
 
     setIsLoading(false);
   }, [router]);
 
-  
-
-
   return (
-    <header className="bg-white shadow-md p-4 flex items-center justify-between">
+    <header className="bg-neutral-900 border-b border-neutral-800 p-4 flex items-center justify-between sticky top-0 z-20">
+
       <div className="flex items-center space-x-4">
         <button
           onClick={onToggleSidebar}
-          className="p-2 text-gray-700 bg-gray-100 rounded-md shadow-md md:hidden focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="p-2 bg-neutral-800 rounded-lg text-gray-300 hover:text-white hover:bg-neutral-700 transition md:hidden"
           aria-label="Toggle Sidebar"
         >
-          <List />
+          <List size={20} />
         </button>
+        <h1 className="text-white text-lg font-bold hidden md:block">AI Copywriter</h1>
       </div>
 
       <div className="flex items-center space-x-4">
-        <span className="text-gray-600">
+        <span className="text-gray-400 text-sm">
           {isLoading ? "Loading..." : email || "Users"}
         </span>
-         <Stack direction="row" spacing={2}>
-          <Avatar sx={{ bgcolor: deepOrange[500] }}>{name || "ID"}</Avatar>
-        </Stack>
+        <Avatar sx={{ bgcolor: deepPurple[500], width: 36, height: 36 }}>
+          {name || "ID"}
+        </Avatar>
       </div>
     </header>
   );

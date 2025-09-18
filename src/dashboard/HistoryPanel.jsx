@@ -1,12 +1,20 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Select, MenuItem, FormControl, InputLabel, Button, Typography, Box } from "@mui/material";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const platforms = ["facebook", "twitter", "instagram"];
-const types = ["full", "summary", "short"];
-const tones = ["formal", "informal", "friendly"];
+import {
+  Button,
+  Typography,
+  Box,
+  Paper,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+} from "@mui/material";
+import { Eye, Trash2 } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function HistoryPanel() {
   const [data, setData] = useState([]);
@@ -22,13 +30,15 @@ export default function HistoryPanel() {
   const [typeFilter, setTypeFilter] = useState("");
   const [toneFilter, setToneFilter] = useState("");
 
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selected, setSelected] = useState(null);
+
   const abortControllerRef = useRef(null);
 
   const fetchHistory = async () => {
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort(); // cancel previous request
+      abortControllerRef.current.abort();
     }
-
     abortControllerRef.current = new AbortController();
 
     setLoading(true);
@@ -65,33 +75,19 @@ export default function HistoryPanel() {
         }
       );
 
-      const text = await res.text();
-      let result;
-      try {
-        result = JSON.parse(text);
-      } catch {
-        throw new Error("Response dari server tidak valid");
-      }
+      const result = await res.json();
+      // console.log("LIST RESPONSE:", result);
 
       if (!res.ok) {
-        if (result.message && result.message.toLowerCase().includes("belum ada konten")) {
-          setData([]);
-          setError(null);
-          setLoading(false);
-          return;
-        }
-        throw new Error(result.message || `Gagal mengambil data: ${text}`);
+        throw new Error(result.message || "Gagal mengambil data");
       }
 
-      if (Array.isArray(result.data?.contents)) {
-        setData(result.data.contents);
-      } else {
+      setData(Array.isArray(result.data?.contents) ? result.data.contents : []);
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        setError(err.message);
         setData([]);
       }
-    } catch (err) {
-      if (err.name === "AbortError") return; // fetch aborted, ignore error
-      setError(err.message);
-      setData([]);
     } finally {
       setLoading(false);
     }
@@ -99,212 +95,168 @@ export default function HistoryPanel() {
 
   useEffect(() => {
     fetchHistory();
-
-    // Cleanup on unmount
     return () => {
       if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, [page, sort, order, platformFilter, typeFilter, toneFilter]);
 
-  // Pagination handler with loading state
-  const handlePageChange = (newPage) => {
-    setLoading(true);
-    setPage(newPage);
+  const handleView = async (id) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/contents/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const result = await res.json();
+      // console.log("DETAIL RESPONSE:", result);
+
+      if (res.ok) {
+        let detail = result.data?.detailContent;
+
+        if (Array.isArray(detail.generated_content)) {
+          detail.generated_content = detail.generated_content[0]; // ambil isi pertama
+        }
+
+        setSelected(detail);
+        setOpenDialog(true);
+      } else {
+        Swal.fire(
+          "Gagal!",
+          result.message || "Konten tidak ditemukan.",
+          "error"
+        );
+      }
+    } catch (error) {
+      Swal.fire("Error!", "Gagal mengambil detail konten.", "error");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Hapus Konten?",
+      text: "Konten yang dihapus tidak bisa dikembalikan.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/contents/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.ok) {
+        Swal.fire("Terhapus!", "Konten berhasil dihapus.", "success");
+
+        // hapus langsung di state biar realtime
+        setData((prev) => prev.filter((item) => item.id !== id));
+      } else {
+        const result = await res.json();
+        Swal.fire(
+          "Gagal!",
+          result.message || "Gagal menghapus konten.",
+          "error"
+        );
+      }
+    } catch (error) {
+      Swal.fire("Error!", "Terjadi kesalahan saat menghapus konten.", "error");
+    }
   };
 
   return (
-    <Box p={3} maxWidth={900} margin="auto">
-      <Typography variant="h4" fontWeight="bold" mb={2}>
+    <Box p={3} maxWidth={1100} margin="auto">
+      <Typography variant="h4" fontWeight="bold" mb={1}>
         Riwayat Konten
       </Typography>
       <Typography color="textSecondary" mb={3}>
         Semua konten yang kamu generate akan tersimpan di sini.
       </Typography>
 
-      {/* Filters */}
-      <Box display="flex" flexWrap="wrap" gap={2} mb={4} justifyContent="space-between" alignItems="center">
-        {/* Platform Filter */}
-        <FormControl sx={{ minWidth: 140 }}>
-          <InputLabel id="platform-label">Platform</InputLabel>
-          <Select
-            labelId="platform-label"
-            value={platformFilter}
-            label="Platform"
-            onChange={(e) => {
-              setPage(1);
-              setPlatformFilter(e.target.value);
-            }}
-            size="small"
-            aria-label="Filter Platform"
-          >
-            <MenuItem value="">
-              <em>Semua Platform</em>
-            </MenuItem>
-            {platforms.map((p) => (
-              <MenuItem key={p} value={p}>
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Type Filter */}
-        <FormControl sx={{ minWidth: 140 }}>
-          <InputLabel id="type-label">Tipe</InputLabel>
-          <Select
-            labelId="type-label"
-            value={typeFilter}
-            label="Tipe"
-            onChange={(e) => {
-              setPage(1);
-              setTypeFilter(e.target.value);
-            }}
-            size="small"
-            aria-label="Filter Tipe"
-          >
-            <MenuItem value="">
-              <em>Semua Tipe</em>
-            </MenuItem>
-            {types.map((t) => (
-              <MenuItem key={t} value={t}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Tone Filter */}
-        <FormControl sx={{ minWidth: 140 }}>
-          <InputLabel id="tone-label">Nada</InputLabel>
-          <Select
-            labelId="tone-label"
-            value={toneFilter}
-            label="Nada"
-            onChange={(e) => {
-              setPage(1);
-              setToneFilter(e.target.value);
-            }}
-            size="small"
-            aria-label="Filter Nada"
-          >
-            <MenuItem value="">
-              <em>Semua Nada</em>
-            </MenuItem>
-            {tones.map((t) => (
-              <MenuItem key={t} value={t}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Sort By */}
-        <FormControl sx={{ minWidth: 140 }}>
-          <InputLabel id="sort-label">Sort By</InputLabel>
-          <Select
-            labelId="sort-label"
-            value={sort}
-            label="Sort By"
-            onChange={(e) => {
-              setPage(1);
-              setSort(e.target.value);
-            }}
-            size="small"
-            aria-label="Sort By"
-          >
-            <MenuItem value="created_at">Tanggal dibuat</MenuItem>
-            <MenuItem value="platform">Platform</MenuItem>
-            <MenuItem value="type">Tipe</MenuItem>
-            <MenuItem value="tone">Nada</MenuItem>
-            <MenuItem value="language">Bahasa</MenuItem>
-          </Select>
-        </FormControl>
-
-        {/* Order */}
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel id="order-label">Urutan</InputLabel>
-          <Select
-            labelId="order-label"
-            value={order}
-            label="Urutan"
-            onChange={(e) => {
-              setPage(1);
-              setOrder(e.target.value);
-            }}
-            size="small"
-            aria-label="Urutan"
-          >
-            <MenuItem value="DESC">Desc</MenuItem>
-            <MenuItem value="ASC">Asc</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
       {/* Data Table */}
-      <Box bgcolor="background.paper" p={3} borderRadius={2} boxShadow={3} overflow="auto">
+      <Paper sx={{ borderRadius: 2, overflow: "hidden" }} elevation={2}>
         {loading ? (
-          <Typography color="textSecondary">Memuat data...</Typography>
+          <Box p={4} textAlign="center">
+            <CircularProgress />
+            <Typography mt={2} color="textSecondary">
+              Memuat data...
+            </Typography>
+          </Box>
         ) : error ? (
-          <Typography color="error">{error}</Typography>
+          <Box p={4} textAlign="center">
+            <Typography color="error">{error}</Typography>
+          </Box>
         ) : data.length === 0 ? (
-          <Typography color="textSecondary" fontStyle="italic">
-            Riwayat masih kosong. Belum ada konten yang tersimpan.
-          </Typography>
+          <Box p={4} textAlign="center">
+            <Typography color="textSecondary" fontStyle="italic">
+              Riwayat masih kosong. Belum ada konten yang tersimpan.
+            </Typography>
+          </Box>
         ) : (
           <table
-            className="min-w-full table-auto"
+            className="min-w-full"
             style={{ width: "100%", borderCollapse: "collapse" }}
-            aria-label="Tabel Riwayat Konten"
           >
             <thead>
               <tr
                 style={{
-                  backgroundColor: "#e5e7eb",
-                  color: "#4b5563",
-                  textTransform: "uppercase",
+                  backgroundColor: "#f9fafb",
+                  color: "#374151",
                   fontSize: "0.875rem",
-                  fontWeight: "600",
-                  lineHeight: "1.25rem",
+                  fontWeight: 600,
                 }}
               >
-                <th style={{ padding: "0.75rem 1.5rem", textAlign: "left" }}>Platform</th>
-                <th style={{ padding: "0.75rem 1.5rem", textAlign: "left" }}>Tipe</th>
-                <th style={{ padding: "0.75rem 1.5rem", textAlign: "left" }}>Nada</th>
-                <th style={{ padding: "0.75rem 1.5rem", textAlign: "left" }}>Bahasa</th>
-                <th
-                  style={{
-                    padding: "0.75rem 1.5rem",
-                    textAlign: "left",
-                    maxWidth: 300,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <th style={{ padding: "12px 16px", textAlign: "left" }}>
+                  Platform
+                </th>
+                <th style={{ padding: "12px 16px", textAlign: "left" }}>
+                  Tipe
+                </th>
+                <th style={{ padding: "12px 16px", textAlign: "left" }}>
+                  Nada
+                </th>
+                <th style={{ padding: "12px 16px", textAlign: "left" }}>
+                  Bahasa
+                </th>
+                <th style={{ padding: "12px 16px", textAlign: "left" }}>
                   Prompt Input
+                </th>
+                <th style={{ padding: "12px 16px", textAlign: "center" }}>
+                  Aksi
                 </th>
               </tr>
             </thead>
-            <tbody style={{ color: "#4b5563", fontSize: "0.875rem", fontWeight: "400" }}>
-              {data.map((item) => (
+            <tbody>
+              {data.map((item, idx) => (
                 <tr
                   key={item.id}
                   style={{
-                    borderBottom: "1px solid #e5e7eb",
-                    cursor: "default",
-                    transition: "background-color 0.3s",
+                    backgroundColor: idx % 2 === 0 ? "#fff" : "#f3f4f6",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
-                  <td style={{ padding: "0.75rem 1.5rem", textTransform: "capitalize" }}>{item.platform}</td>
-                  <td style={{ padding: "0.75rem 1.5rem", textTransform: "capitalize" }}>{item.type}</td>
-                  <td style={{ padding: "0.75rem 1.5rem", textTransform: "capitalize" }}>{item.tone}</td>
-                  <td style={{ padding: "0.75rem 1.5rem", textTransform: "capitalize" }}>{item.language}</td>
+                  <td style={{ padding: "12px 16px" }}>{item.platform}</td>
+                  <td style={{ padding: "12px 16px" }}>{item.type}</td>
+                  <td style={{ padding: "12px 16px" }}>{item.tone}</td>
+                  <td style={{ padding: "12px 16px" }}>{item.language}</td>
                   <td
                     style={{
-                      padding: "0.75rem 1.5rem",
-                      maxWidth: 300,
+                      padding: "12px 16px",
+                      maxWidth: 200,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -313,51 +265,75 @@ export default function HistoryPanel() {
                   >
                     {item.input_prompt}
                   </td>
+                  <td style={{ padding: "12px 16px", textAlign: "center" }}>
+                    <IconButton
+                      color="primary"
+                      size="small"
+                      onClick={() => handleView(item.id)}
+                    >
+                      <Eye size={18} />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      size="small"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      <Trash2 size={18} />
+                    </IconButton>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </Box>
+      </Paper>
 
-      <Box display="flex" justifyContent="center" mt={4} gap={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<ChevronLeft />}
-          disabled={page <= 1 || loading}
-          onClick={() => handlePageChange(Math.max(page - 1, 1))}
-          aria-label="Previous page"
-        >
-          Previous
-        </Button>
-        <Typography
-          variant="button"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            px: 2,
-            borderRadius: 1,
-            backgroundColor: "#e0e0e0",
-            minWidth: 40,
-            userSelect: "none",
-          }}
-          aria-label="Current page"
-        >
-          {page}
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          endIcon={<ChevronRight />}
-          disabled={data.length < limit || loading}
-          onClick={() => handlePageChange(page + 1)}
-          aria-label="Next page"
-        >
-          Next
-        </Button>
-      </Box>
+      {/* Dialog Detail */}
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Detail Konten</DialogTitle>
+        <DialogContent dividers>
+          {selected ? (
+            <Box>
+              <Typography fontWeight="bold" mb={2}>
+                {selected.platform} - {selected.type} - {selected.tone} -{" "}
+                {selected.language}
+              </Typography>
+
+              <Typography mb={2}>
+                <strong>Prompt:</strong> {selected.input_prompt}
+              </Typography>
+
+              {selected.generated_content && (
+                <Box
+                  sx={{
+                    background: "#f9fafb",
+                    p: 2,
+                    borderRadius: "8px",
+                    fontSize: "0.9rem",
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {selected.generated_content.caption || "-"}
+                  {"\n"}
+                  {selected.generated_content.description || "-"}
+                  {"\n"}
+                  {selected.generated_content.hashtags || ""}
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Typography>Memuat...</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Tutup</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
