@@ -1,40 +1,33 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { refreshToken, logoutUser } from "@/lib/api";
+import { logoutUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { jwtDecode } from "jwt-decode";
-
 
 export default function TokenLogin({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    async function validateToken() {
+    function checkToken() {
       const accessToken = localStorage.getItem("accessToken");
-
       if (!accessToken) {
-        return handleSessionExpired("Access token tidak ditemukan.");
+        return handleSessionExpired("Token tidak ditemukan, silakan login ulang.");
       }
 
       try {
         const decoded = jwtDecode(accessToken);
-        console.log(decoded.exp);
         const now = Math.floor(Date.now() / 1000);
 
-        console.log("Decoded token:", decoded);
-        console.log("Now:", now, "Exp:", decoded.exp);
-
         if (!decoded.exp || decoded.exp < now) {
-          console.log("Access token kadaluarsa, proses refres...");
-          await refreshToken();
+          console.warn("Access token expired. Akan di-refresh saat request berikutnya.");
         } else {
           console.log("Access token valid.");
         }
-      } catch (error) {
-        console.error("Gagal decode token:", error);
-        return handleSessionExpired("Token tidak valid atau rusak.");
+      } catch (err) {
+        console.error("Token rusak atau invalid:", err);
+        return handleSessionExpired("Token tidak valid, silakan login ulang.");
       }
     }
 
@@ -42,7 +35,7 @@ export default function TokenLogin({ children }) {
       Swal.fire({
         icon: "warning",
         title: "Session Berakhir",
-        text: message || "Silakan login ulang.",
+        text: message,
         confirmButtonText: "OK",
       }).then(() => {
         logoutUser();
@@ -50,13 +43,8 @@ export default function TokenLogin({ children }) {
       });
     }
 
-    validateToken();
-
-    const interval = setInterval(validateToken, 10 * 60 * 1000);
-    return () => clearInterval(interval);
+    checkToken();
   }, [router]);
-
-
 
   return <>{children}</>;
 }

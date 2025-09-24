@@ -22,17 +22,6 @@ export default function GlassNavbar() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [redirectUrl, setRedirectUrl] = React.useState("/sign-in");
 
-  React.useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const refreshToken = localStorage.getItem("refreshToken");
-
-    if (accessToken || refreshToken) {
-      setRedirectUrl("/studio/home");
-    } else {
-      setRedirectUrl("/sign-in");
-    }
-  }, []);
-
   const toggleDrawer = (open) => () => {
     setDrawerOpen(open);
   };

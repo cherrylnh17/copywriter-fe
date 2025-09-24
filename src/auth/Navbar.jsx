@@ -124,7 +124,7 @@ export default function GlassNavbar() {
             variant="h6"
             noWrap
             component="a"
-            href="#home"
+            href="/#home"
             sx={{
               mr: 4,
               fontWeight: 700,

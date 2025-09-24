@@ -98,7 +98,7 @@ export default function SignUpForm() {
 
         Swal.fire({
           title: 'Pendaftaran Gagal',
-          text: err.message || 'Terjadi kesalahan saat mendaftar.',
+          text: 'Terjadi kesalahan saat mendaftar.',
           icon: 'error',
           confirmButtonText: 'Coba Lagi',
         });

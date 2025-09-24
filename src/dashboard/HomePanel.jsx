@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { fetchWithRefresh } from "@/lib/api"; 
 
 export default function HomePanel() {
   const [totalKonten, setTotalKonten] = useState("-");
@@ -9,33 +10,12 @@ export default function HomePanel() {
   useEffect(() => {
     const fetchKonten = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.error("Token tidak tersedia di localStorage");
-          setIsLoading(false);
-          return;
-        }
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/contents`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const result = await fetchWithRefresh(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/contents`
         );
-
-        if (!res.ok) {
-          const text = await res.text();
-          console.error("Response error:", text);
-          return;
-        }
-
-        const result = await res.json();
         setTotalKonten(result?.data?.contents?.length || 0);
       } catch (error) {
-        console.error("Gagal fetch konten:", error);
+        console.error("Gagal fetch konten:", error.message);
       } finally {
         setIsLoading(false);
       }
@@ -43,6 +23,7 @@ export default function HomePanel() {
 
     fetchKonten();
   }, []);
+
 
   return (
     <div className="p-6">
